@@ -1,5 +1,8 @@
 import org.eclipse.jetty.websocket.api.*;
 import org.json.*;
+import spark.ModelAndView;
+import spark.template.velocity.VelocityTemplateEngine;
+
 import java.text.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,10 +17,44 @@ public class Chat {
     static int nextUserNumber = 1; //Assign to username for next connecting user
 
     public static void main(String[] args) {
-        staticFiles.location("/public"); //index.html is served at localhost:4567 (default port)
+        staticFiles.location("/public");
         staticFiles.expireTime(600);
         webSocket("/chat", ChatWebSocketHandler.class);
         init();
+
+
+        get("/chatroom", (request, response) -> {
+            if(request.session().attribute("name") == null){
+                response.redirect("/login");
+                return null;
+            }
+
+            Map<String, Object> model = new HashMap<>();
+
+            // The wm files are located under the resources directory
+            return new ModelAndView(model, "velocity/chatroom.html");
+        }, new VelocityTemplateEngine());
+
+
+        get("/login", (request, response) -> {
+            Map<String, Object> model = new HashMap<>();
+
+            // The wm files are located under the resources directory
+            return new ModelAndView(model, "velocity/login.html");
+        }, new VelocityTemplateEngine());
+
+        post("/login", ((request, response) -> {
+            String name = request.queryParams("name");
+            String color = request.queryParams("color");
+
+            request.session().attribute("name", name);
+            request.session().attribute("color", color);
+
+
+            response.redirect("/chatroom");
+            return null;
+        }));
+
     }
 
     //Sends a message from one user to all users, along with a list of current usernames

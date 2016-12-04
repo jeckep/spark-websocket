@@ -37,6 +37,12 @@
             <artifactId>j2html</artifactId>
             <version>0.7</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.sparkjava</groupId>
+            <artifactId>spark-template-velocity</artifactId>
+            <version>2.3</version>
+        </dependency>
     </dependencies>
 
 </project>
