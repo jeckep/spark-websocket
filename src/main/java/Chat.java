@@ -1,3 +1,4 @@
+import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jetty.websocket.api.*;
 import org.json.*;
 import spark.ModelAndView;
@@ -38,22 +39,27 @@ public class Chat {
 
         get("/login", (request, response) -> {
             Map<String, Object> model = new HashMap<>();
-
+            model.put("error", request.queryParams("error"));
             // The wm files are located under the resources directory
             return new ModelAndView(model, "velocity/login.html");
         }, new VelocityTemplateEngine());
 
         post("/login", ((request, response) -> {
             String name = request.queryParams("name");
-            String color = request.queryParams("color");
-
-            request.session().attribute("name", name);
-            request.session().attribute("color", color);
-
-
-            response.redirect("/chatroom");
+            if(StringUtil.isNotBlank(name)) {
+                String color = request.queryParams("color");
+                request.session().attribute("name", name);
+                request.session().attribute("color", color);
+                response.redirect("/chatroom");
+            } else {
+                response.redirect("/login?error=name");
+            }
             return null;
         }));
+
+        after((request, response) -> {
+            response.header("charset", "UTF-8");
+        });
 
     }
 
