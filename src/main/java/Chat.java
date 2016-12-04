@@ -1,6 +1,8 @@
+import model.User;
 import org.eclipse.jetty.util.StringUtil;
 import org.eclipse.jetty.websocket.api.*;
 import org.json.*;
+import session.AuthedUserListHolder;
 import spark.ModelAndView;
 import spark.template.velocity.VelocityTemplateEngine;
 import utils.ViewUtils;
@@ -26,7 +28,7 @@ public class Chat {
 
 
         get("/chatroom", (request, response) -> {
-            if(request.session().attribute("user") == null){
+            if(request.session().attribute("currentUser") == null){
                 response.redirect("/login");
                 return null;
             }
@@ -39,7 +41,7 @@ public class Chat {
 
 
         get("/login", (request, response) -> {
-            if(request.session().attribute("user") != null){
+            if(request.session().attribute("currentUser") != null){
                 response.redirect("/chatroom");
                 return null;
             }
@@ -54,7 +56,9 @@ public class Chat {
             String name = request.queryParams("name");
             if(StringUtil.isNotBlank(name)) {
                 String color = request.queryParams("color");
-                request.session().attribute("user", new User(name, color));
+                User user = new User(name, color);
+                request.session().attribute("currentUser", user);
+                AuthedUserListHolder.put(request, user);
                 response.redirect("/chatroom");
             } else {
                 response.redirect("/login?error=name");
@@ -63,19 +67,20 @@ public class Chat {
         }));
 
         get("/logout", ((request, response) -> {
-            request.session().removeAttribute("user");
+            AuthedUserListHolder.remove(request.session().attribute("currentUser"));
+            request.session().removeAttribute("currentUser");
             response.redirect("/login");
             return null;
         }));
 
-        get("*", ((request, response) -> {
-            if(request.session().attribute("name") != null){
-                response.redirect("/chatroom");
-            }else{
-                response.redirect("/login");
-            }
-            return null;
-        }));
+//        get("*", ((request, response) -> {
+//            if(request.session().attribute("name") != null){
+//                response.redirect("/chatroom");
+//            }else{
+//                response.redirect("/login");
+//            }
+//            return null;
+//        }));
 
         after((request, response) -> {
             response.header("charset", "UTF-8");
