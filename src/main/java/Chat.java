@@ -3,6 +3,7 @@ import org.eclipse.jetty.websocket.api.*;
 import org.json.*;
 import spark.ModelAndView;
 import spark.template.velocity.VelocityTemplateEngine;
+import utils.ViewUtils;
 
 import java.text.*;
 import java.util.*;
@@ -42,7 +43,7 @@ public class Chat {
             model.put("error", request.queryParams("error"));
             // The wm files are located under the resources directory
             return new ModelAndView(model, "velocity/login.html");
-        }, new VelocityTemplateEngine());
+        }, ViewUtils.strictVelocityEngine());
 
         post("/login", ((request, response) -> {
             String name = request.queryParams("name");
