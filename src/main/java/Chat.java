@@ -26,7 +26,7 @@ public class Chat {
 
 
         get("/chatroom", (request, response) -> {
-            if(request.session().attribute("name") == null){
+            if(request.session().attribute("user") == null){
                 response.redirect("/login");
                 return null;
             }
@@ -39,6 +39,11 @@ public class Chat {
 
 
         get("/login", (request, response) -> {
+            if(request.session().attribute("user") != null){
+                response.redirect("/chatroom");
+                return null;
+            }
+
             Map<String, Object> model = new HashMap<>();
             model.put("error", request.queryParams("error"));
             // The wm files are located under the resources directory
@@ -49,11 +54,25 @@ public class Chat {
             String name = request.queryParams("name");
             if(StringUtil.isNotBlank(name)) {
                 String color = request.queryParams("color");
-                request.session().attribute("name", name);
-                request.session().attribute("color", color);
+                request.session().attribute("user", new User(name, color));
                 response.redirect("/chatroom");
             } else {
                 response.redirect("/login?error=name");
+            }
+            return null;
+        }));
+
+        get("/logout", ((request, response) -> {
+            request.session().removeAttribute("user");
+            response.redirect("/login");
+            return null;
+        }));
+
+        get("*", ((request, response) -> {
+            if(request.session().attribute("name") != null){
+                response.redirect("/chatroom");
+            }else{
+                response.redirect("/login");
             }
             return null;
         }));
